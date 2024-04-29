@@ -8,8 +8,8 @@ Input files:
 
 Output files:
 ------------
-- <stats_file_path>/<pid>_<block_name>_bursts_stats.csv  # averaged statistics over all sensors
-- <stats_file_path>/<pid>_<block_name>_bursts_stats_channels.csv  # detailed stats for every sensors
+- <stats_file_path>/<pid>_<block_name>_bursts_stats.csv  # averaged statistics over all channels
+- <stats_file_path>/<pid>_<block_name>_bursts_stats_channels.csv  # detailed stats for every channel
 """
 import os
 from typing import Any
@@ -54,7 +54,7 @@ def compute_cycles_statistics(df_cycles: pd.DataFrame, fs: float, average: bool 
     fs: float
         sampling frequency of the original time series
     average: bool
-        whether to average the statistics over the sensors
+        whether to average the statistics over the channels
     window: int
         Whether the statistics are computed over windows or over the whole block. If None (default), assumes that
         the first cycle is not part of a burst. If  an integer, does not make this assumption unless this is the
@@ -62,7 +62,7 @@ def compute_cycles_statistics(df_cycles: pd.DataFrame, fs: float, average: bool 
 
     Return
     ------
-    A dictionary of the averaged cycles statistics, either per sensors or for all sensors aggregated (average).
+    A dictionary of the averaged cycles statistics, either per channel or for all channels aggregated (average).
     """
 
     groups = df_cycles.groupby("sensor")
@@ -160,7 +160,7 @@ def burst_stats_per_recording(sid_key: str, fs: float, cycle_file_path: str, sta
     stats_file_path: str
         path to the folder where to save the statistics
     picks: list
-        sensors to keep for the statistics
+        channels to keep for the statistics
     file_suffix: str
         suffix to add to the statistics file name
 
@@ -215,7 +215,7 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
     stats_file_path: str
         path to the folder where to save the statistics
     picks: list
-        sensors to keep for the statistics
+        channels to keep for the statistics
     file_suffix: str
         suffix to add to the statistics file name
 
@@ -273,7 +273,7 @@ def run_statistics_pipeline(run_ids: list, sfreq: float, picks: list = None, win
     sfreq: float
         sampling frequency of the original time series
     picks: list
-        sensors to keep for the statistics
+        channels to keep for the statistics
     window: int | None
         window duration in seconds to compute statistics over temporal windows. If None, compute statistics over the
         whole block. If not None, the cycles data frames should have been computed with the window parameters.

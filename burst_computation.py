@@ -8,7 +8,7 @@ Input files:
 
 Output files:
 -----------
-- <cycles_dir>/<run_id>_all_cycles.csv  # characteristics for each cycle for all sensors
+- <cycles_dir>/<run_id>_all_cycles.csv  # characteristics for each cycle for all channels
 """
 from __future__ import annotations
 
@@ -115,11 +115,11 @@ def bursts_detection(sigs: np.ndarray,
     Parameters
     ----------
     sigs: np.ndarray
-        The signals to detect bursts in. It should be of shape (n_sensors, n_samples).
+        The signals to detect bursts in. It should be of shape (n_channels, n_samples).
     fs: float
         The sampling frequency of the signal.
     picks: list | np.ndarray
-        The list of sensors to pick for analysis. This should be identical to the sensors used to fetch the data from
+        The list of channels to pick for analysis. This should be identical to the channels used to fetch the data from
         the raw file (e.g., when using raw.get_data(...)).
     freq_band : tuple of float
         The frequency band of interest for the burst detection. Used to filter the signals by bycycle algorithm to
@@ -143,9 +143,9 @@ def bursts_detection(sigs: np.ndarray,
     -------
     The dataframe containing the cycles features and the bursts detection results (`is_burst` column).
     """
-    # checking that the number of sensors and signals match
+    # checking that the number of channels and signals match
     if len(picks) != sigs.shape[0]:
-        raise ValueError(f"Number of sensors ({len(picks)}) and number of signals ({sigs.shape[0]}) do not match.")
+        raise ValueError(f"Number of channels ({len(picks)}) and number of signals ({sigs.shape[0]}) do not match.")
 
     if use_mean_period_correction and not use_neighboring_correction:
         raise ValueError("The mean period correction can only be used if the neighboring correction is enabled.")
@@ -155,11 +155,11 @@ def bursts_detection(sigs: np.ndarray,
         'burst_method': 'cycles',
         'threshold_kwargs': threshold_kwargs
     }
-    # here the default axis = 0 is used, because we compute over independent signals of shape (n_sensors, n_samples)
+    # here the default axis = 0 is used, because we compute over independent signals of shape (n_channels, n_samples)
     dfs = compute_features_2d(sigs, fs, freq_band, compute_kwargs, return_samples=True, n_jobs=n_jobs,
                               progress="tqdm" if n_jobs > 1 else None)
 
-    # checking cycle by cycle for each sensor
+    # checking cycle by cycle for each channel
     for df_idx, df in enumerate(dfs):
         # filter out cycles with a period out of frequency range
         df["bursty_features"] = df["is_burst"]  # whether the cycle has bursty characteristics
@@ -204,7 +204,7 @@ def cycle_by_cycle_single_rec(data_path, picks, band_name, sid_key, cycles_dir):
     data_path: str
         The path to the continuous mne.io.Raw data file. The file should be in fif format.
     picks: list
-        The sensors to keep for the analysis. Should be a list of strings (channel names).
+        The channels to keep for the analysis. Should be a list of strings (channel names).
     band_name: str
         the name of the band used to choose the parameters for the burst detection from the burst_config.py file
     sid_key: str
@@ -270,7 +270,7 @@ def win_cycle_by_cycle_single_rec(sid_key, window, fs, picks, whole_cycles_dir, 
     # so only the samples between the last cycle and the last samples are lost
     dur_samples = df_cycles.sample_last_trough.values[-1]
 
-    df_cycles = df_cycles[df_cycles.sensor.isin(picks)]  # filtering the desired sensors
+    df_cycles = df_cycles[df_cycles.sensor.isin(picks)]  # filtering the desired channels
 
     window = int(window)  # to avoid leaving a dot in the filename
     win_samples = int(window * fs)  # number of samples in each window
@@ -330,7 +330,7 @@ def run_by_cycle_pipeline(run_ids, raw_data_paths, picks, band_name, cycles_dir=
     raw_data_paths: list
         A list of paths to the continuous mne.io.Raw data file. The file should be in fif format.
     picks: list
-        The sensors to keep for the analysis. Should be a list of strings (channel names).
+        The channels to keep for the analysis. Should be a list of strings (channel names).
     band_name: str
         the name of the band used to choose the parameters for the burst detection from the burst_config.py file
     cycles_dir: str
@@ -378,7 +378,7 @@ def run_win_by_cycle_pipeline(run_ids, fs, picks, cycles_dir="./cycles_analysis"
     fs: float
         The sampling frequency of the data
     picks: list
-        The sensors to keep for the analysis. Should be a list of strings (channel names).
+        The channels to keep for the analysis. Should be a list of strings (channel names).
     cycles_dir: str
         the path to the directory where the results of the whole data analysis are saved and will be used
     win_cycles_dir: str

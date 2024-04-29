@@ -71,7 +71,7 @@ significant_chs: list = [
     'P2', 'P6', 'PO5', 'PO3', 'PO4', 'PO6', 'TP7', 'TP8', 'PO7', 'PO8',
     'Oz'
 ]
-print(f"Cluster of {len(significant_chs)} significant sensors: {str(significant_chs)}")
+print(f"Cluster of {len(significant_chs)} significant channels: {str(significant_chs)}")
 from _local_config import recordings
 # this is used to identify any given recording
 # e.g., [..., "subjectID_runID", ...]
