@@ -254,8 +254,9 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
     if stats_file_path:
         fname = f"{stats_file_path}/{sid_key}_window_{window}s_bursts_stats_detailed{file_suffix}.csv"
         out.to_csv(fname, index=False)
-        out_mean = out.groupby(by=["window"]).mean(numeric_only=True)
+        out_mean = out.groupby(by=["window"]).mean(numeric_only=True).reset_index(drop=False)
         fname = f"{stats_file_path}/{sid_key}_window_{window}s_bursts_stats_avg{file_suffix}.csv"
+        out_mean.insert(0, "NIP", sid_key)
         out_mean.to_csv(fname, index=False)
 
     return out
