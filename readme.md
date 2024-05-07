@@ -62,10 +62,14 @@ pip install -r requirements.txt
 
 ### Dependencies
 
-- mne
+See requirements.txt file for the exhaustive list. 
+
+- mne, v1.7.0
 - numpy
 - pandas
-- bycycle
+- tqdm
+- bycycle, v1.0.0
+- neurodsp, v2.2.1
 
 ## Usage
 

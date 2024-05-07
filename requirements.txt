@@ -1,4 +1,4 @@
-bycycle==1.1.0
+bycycle==1.0.0
 certifi==2024.2.2
 charset-normalizer==3.3.2
 contourpy==1.2.1

@@ -55,10 +55,6 @@ def compute_cycles_statistics(df_cycles: pd.DataFrame, fs: float, average: bool 
         sampling frequency of the original time series
     average: bool
         whether to average the statistics over the channels
-    window: int
-        Whether the statistics are computed over windows or over the whole block. If None (default), assumes that
-        the first cycle is not part of a burst. If  an integer, does not make this assumption unless this is the
-        first window (i.e. the first cycle of the whole recording).
 
     Return
     ------
@@ -195,8 +191,8 @@ def burst_stats_per_recording(sid_key: str, fs: float, cycle_file_path: str, sta
                         index=False)
         out.to_csv(f"{stats_file_path}/{sid_key}_bursts_stats_detailed{file_suffix}.csv",
                    index=False)
-
-    return out
+    else:
+        return out
 
 
 def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path: str,
@@ -229,7 +225,32 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
     - <stats_file_path>/<sid_key>_window_<window>s_bursts_stats_avg<file_suffix>.csv
     """
     # output of the computation step of the pipeline
-    df_cycles = pd.read_csv(f"{cycle_file_path}/{sid_key}_window_{window}s_all_cycles.csv")
+    df_cycles = pd.read_csv(f"{cycle_file_path}/{sid_key}_window_{window}s_all_cycles.csv",
+                            dtype={
+                                'amp_fraction': pd.Float64Dtype(),
+                                'amp_consistency': pd.Float64Dtype(),
+                                'period_consistency': pd.Float64Dtype(),
+                                'monotonicity': pd.Float64Dtype(),
+                                'period': pd.Int64Dtype(),
+                                'time_peak': pd.Int64Dtype(),
+                                'time_trough': pd.Int64Dtype(),
+                                'volt_peak': pd.Float64Dtype(),
+                                'volt_trough': pd.Float64Dtype(),
+                                'time_decay': pd.Int64Dtype(),
+                                'time_rise': pd.Int64Dtype(),
+                                'volt_decay': pd.Float64Dtype(),
+                                'volt_rise': pd.Float64Dtype(),
+                                'volt_amp': pd.Float64Dtype(),
+                                'time_rdsym': pd.Float64Dtype(),
+                                'time_ptsym': pd.Float64Dtype(),
+                                'band_amp': pd.Float64Dtype(),
+                                'sample_peak': pd.Int64Dtype(),
+                                'sample_last_zerox_decay': pd.Int64Dtype(),
+                                'sample_zerox_decay': pd.Int64Dtype(),
+                                'original_burst': pd.BooleanDtype(),
+                                'bursty_features': pd.BooleanDtype(),
+                                'is_burst': pd.BooleanDtype()
+                            })
     if picks is not None:
         check_ch_exists(picks, df_cycles.sensor.unique())
         df_cycles = df_cycles[df_cycles.sensor.isin(picks)]
@@ -258,13 +279,13 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
         fname = f"{stats_file_path}/{sid_key}_window_{window}s_bursts_stats_avg{file_suffix}.csv"
         out_mean.insert(0, "NIP", sid_key)
         out_mean.to_csv(fname, index=False)
-
-    return out
+    else:
+        return out
 
 
 def run_statistics_pipeline(run_ids: list, sfreq: float, picks: list = None, window: int = None,
                             cycles_dir: str = "./cycles_analysis", stats_dir: str = "./cycles_stats",
-                            file_suffix: str = ""):
+                            file_suffix: str = "", use_parallel=True):
     """ Save overall stats for each block in a csv file (use stats_dir path)
 
     Parameters
@@ -284,6 +305,8 @@ def run_statistics_pipeline(run_ids: list, sfreq: float, picks: list = None, win
         path to the folder where to save the statistics. Will be created if it does not exist
     file_suffix: str
         suffix to add to the statistics file name
+    use_parallel: bool
+        whether to use parallel processing: True sets n_jobs=-1, False sets n_jobs=1
 
     Input files
     -----------
@@ -300,8 +323,9 @@ def run_statistics_pipeline(run_ids: list, sfreq: float, picks: list = None, win
     if not os.path.exists(stats_dir):
         os.mkdir(stats_dir)
 
+    n_jobs = -1 if use_parallel else 1
     if window is None:
-        parallel, run_func, _ = parallel_func(burst_stats_per_recording, n_jobs=-1, total=len(run_ids))
+        parallel, run_func, _ = parallel_func(burst_stats_per_recording, n_jobs=n_jobs, total=len(run_ids))
         parallel(run_func(
             run_id,
             fs=sfreq,
@@ -311,7 +335,7 @@ def run_statistics_pipeline(run_ids: list, sfreq: float, picks: list = None, win
             file_suffix=file_suffix
         ) for run_id in run_ids)
     else:
-        parallel, run_func, _ = parallel_func(burst_stats_per_window, n_jobs=-1, total=len(run_ids))
+        parallel, run_func, _ = parallel_func(burst_stats_per_window, n_jobs=n_jobs, total=len(run_ids))
         parallel(run_func(
             run_id,
             fs=sfreq,
