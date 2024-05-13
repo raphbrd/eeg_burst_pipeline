@@ -36,7 +36,7 @@ def check_pipeline_params(sfreq, all_chs, significant_chs, raw_data_paths):
     if sfreq != info["sfreq"]:
         raise ValueError("The sampling frequency specified in the script does not match "
                          "the one detected by MNE in the raw data")
-    
+
     check_ch_exists(all_chs, info["ch_names"])
     check_ch_exists(significant_chs, info["ch_names"])
 
