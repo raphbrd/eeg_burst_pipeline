@@ -22,11 +22,11 @@ The `run_burst_pipeline` is the main entry script and contains some configuratio
 Main outputs of interest:
 
 - **<output_path>/stats_<band_name>_burst_detailed_all_chs.csv**: channel-wise burstiness markers per recording.
-- **<output_path>/stats_<band_name>_burst_avg_all_chs.csv**: average per participant accross all channels of the
+- **<output_path>/stats_<band_name>_burst_avg_all_chs.csv**: average per participant across all channels of the
   previous file.
 - **<output_path>/stats_<band_name>_burst_detailed_alpha_cluster.csv**: same as the first file, but containing only
   channels from the specified cluster.
-- **<output_path>/stats_<band_name>_burst_avg_alpha_cluster.csv**: average per participant accross all channels of the
+- **<output_path>/stats_<band_name>_burst_avg_alpha_cluster.csv**: average per participant across all channels of the
   previous file.
 
 `<output_path>` and `<band_name>`  are specified at the beginning of the main script.
@@ -44,7 +44,7 @@ Main burstiness markers (columns names in the output dataframes):
 
 - burst_dur_mean: averaged duration of a burst.
 
-- inter_burst_dur_mean: averaged duration of the interval betweent two consecutive bursts.
+- inter_burst_dur_mean: averaged duration of the interval between two consecutive bursts.
 
 - n_bursts: total number of bursts.
 
@@ -112,7 +112,7 @@ python run_burst_pipeline.py
 | Filter frequencies (Hz)      	 | 4-16     	 | 2-8   	 |
 | Burst range (Hz)             	 | 7.5-12.5 	 | 3-7   	 |
 
-Note: we are using the default definition of a cycle in the bycycle package, i.e. the center extrema is the peak of the
+Note: we use the default definition of a cycle in the bycycle package, i.e. the center extrema is the peak of the
 cycle.
 
 ## References
