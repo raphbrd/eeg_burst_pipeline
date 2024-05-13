@@ -34,7 +34,7 @@ Main outputs of interest:
 Main burstiness markers (columns names in the output dataframes):
 
 - percent_bursty_cycles: this is the relative burst time from the original study. Defined as
-  $\text{burst time} = \frac{\sum_{i = 1}^{N} c_{i}}{N} \times 100$
+  $\text{burst time} = \frac{\sum c_{i}}{N} \times 100$
   With $N$ the number of cycles in the cycles and $c_i$ the boolean variable specifying if cycle $i$ is part of a burst
   or not.
 
