@@ -60,7 +60,7 @@ period and amplitude).
 1. Download the repository
 
 ```bash
-git clone https://github.com/brainthemind/YOUR-REPOSITORY
+git clone https://github.com/raphbrd/eeg_burst_pipeline
 ```
 
 2. Install the packages with pip
