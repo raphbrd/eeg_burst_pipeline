@@ -53,6 +53,10 @@ Main burstiness markers (columns names in the output dataframes):
 We denote by 'bursty' a cycle classified as part of a burst (a sequence of contiguous consistent cycles in terms of
 period and amplitude).
 
+Note: if using `rejection = "omit"` (see `burst_config.py`file), there is no guarantee the recordings will have the same
+duration (because of variable rejection of BAD* segments). In this case, relative values of burstiness (e.g., 
+bursts_per_second, percent_bursty_cycles) should be used instead of absolute ones (e.g., n_bursts, n_bursty_cycles...). 
+
 ## Installation
 
 ### From source
@@ -85,7 +89,8 @@ Note: this pipeline is not compatible with the latest version of bycycle (v1.1.0
 ## Usage
 
 It is assumed that the input data is already preprocessed, consisting of continuous raw EEG data (FIF format used
-by MNE-Python).
+by MNE-Python). Importantly, data are assumed to be cropped between the start and end of the recording of interest.
+The window analysis is meant to crop the data further but to study the stability over time of the oscillation.
 
 1. Configure the `run_burst_pipeline.py` script with the correct paths to the input data and output directories
 

@@ -41,21 +41,27 @@ import burst_config as bc
 
 # frequency band name
 # this selects the associated parameters in the burst_config.py file
-band = 'theta'
+band = 'alpha'
 
 #### /!\ Replace the following part by your own way these paths
-# - a list of significant channels
+# The root_path is the path that will contain the output directories
+# it is assumed to exist
 root_path = "/Volumes/SSD_NS/2021_RS_studies/RSRT"
-output_path: str = op.join(root_path, "results", "bursts", band)
+
+# the following paths are created if they do not exist
+output_path = op.join(root_path, "results", "bursts", band)
 # path to save the output dataframes from bycycle:
-cycles_dir: str = op.join(output_path, "cycles_detection")
+cycles_dir = op.join(output_path, "cycles_detection")
 # path to save the participant-level and channel-level statistics onto those dataframes:
-stats_dir: str = op.join(output_path, "cycles_stats")
+stats_dir = op.join(output_path, "cycles_stats")
 ####
 
 # sampling frequency
 sfreq: float = 1000
 
+# absolute order of the channels is not important, but it should be
+# consistent across all the recordings and output files
+# it should match the order in the mne.io.Info object
 all_chs: list = [
     'Fp1', 'Fpz', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'FC5', 'FC1',
     'FC2', 'FC6', 'T7', 'C3', 'Cz', 'C4', 'T8', 'CP5', 'CP1', 'CP2',
@@ -67,6 +73,7 @@ all_chs: list = [
 ]
 # the following list of channels is assumed to be the alpha cluster resulting
 # from a permutation t test (not included in this pipeline)
+# this is a cluster for the ALPHA band
 significant_chs: list = [
     'T7', 'P7', 'P3', 'Pz', 'P4', 'P8', 'POz', 'O1', 'O2', 'P5', 'P1',
     'P2', 'P6', 'PO5', 'PO3', 'PO4', 'PO6', 'TP7', 'TP8', 'PO7', 'PO8',
@@ -75,24 +82,28 @@ significant_chs: list = [
 print(f"Cluster of {len(significant_chs)} significant channels: {str(significant_chs)}")
 
 #### /!\ Replace the following part by your own way to get the recording list
-from _local_config import recordings
-
 # this is used to identify any given recording
 # e.g., [..., "subjectID_runID", ...]
-recording_ids: list = [f"{s}_{b}" for s, b in recordings]
+recording_ids = [
+    'pid_1_run_1',
+    'pid_1_run_2',
+    'pid_2_run_1',
+    'etc...'
+]
 # full path the mne.io.Raw data
-raw_data_paths: list = [op.join(root_path, "output_data", s, f"{s}_{b}-inspected-raw.fif") for s, b in recordings]
-
+raw_data_paths = [
+    "complete_data_path/pid_1_run_1-raw.fif",
+]
 # the `key` argument for sorting the recordings (passed to `sorted()` or equivalent)
 # can be None if not needed
-sort_key = key_ordering_pids
+sort_key = None
 ####
 
 check_pipeline_params(sfreq, all_chs, significant_chs, raw_data_paths)
 
 # %% [STEP 0] INIT
 if not op.exists(output_path):
-    os.mkdir(output_path)
+    os.makedirs(output_path)
     print(f"Output directory {output_path} created.")
 
 # %% [STEP 1] Running cycle-by-cycle analysis on all the sensors
