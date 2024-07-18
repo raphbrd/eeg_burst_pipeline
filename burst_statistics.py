@@ -225,32 +225,7 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
     - <stats_file_path>/<sid_key>_window_<window>s_bursts_stats_avg<file_suffix>.csv
     """
     # output of the computation step of the pipeline
-    df_cycles = pd.read_csv(f"{cycle_file_path}/{sid_key}_window_{window}s_all_cycles.csv",
-                            dtype={
-                                'amp_fraction': pd.Float64Dtype(),
-                                'amp_consistency': pd.Float64Dtype(),
-                                'period_consistency': pd.Float64Dtype(),
-                                'monotonicity': pd.Float64Dtype(),
-                                'period': pd.Int64Dtype(),
-                                'time_peak': pd.Int64Dtype(),
-                                'time_trough': pd.Int64Dtype(),
-                                'volt_peak': pd.Float64Dtype(),
-                                'volt_trough': pd.Float64Dtype(),
-                                'time_decay': pd.Int64Dtype(),
-                                'time_rise': pd.Int64Dtype(),
-                                'volt_decay': pd.Float64Dtype(),
-                                'volt_rise': pd.Float64Dtype(),
-                                'volt_amp': pd.Float64Dtype(),
-                                'time_rdsym': pd.Float64Dtype(),
-                                'time_ptsym': pd.Float64Dtype(),
-                                'band_amp': pd.Float64Dtype(),
-                                'sample_peak': pd.Int64Dtype(),
-                                'sample_last_zerox_decay': pd.Int64Dtype(),
-                                'sample_zerox_decay': pd.Int64Dtype(),
-                                'original_burst': pd.BooleanDtype(),
-                                'bursty_features': pd.BooleanDtype(),
-                                'is_burst': pd.BooleanDtype()
-                            })
+    df_cycles = pd.read_csv(f"{cycle_file_path}/{sid_key}_window_{window}s_all_cycles.csv")
     if picks is not None:
         check_ch_exists(picks, df_cycles.sensor.unique())
         df_cycles = df_cycles[df_cycles.sensor.isin(picks)]
@@ -260,8 +235,11 @@ def burst_stats_per_window(sid_key: str, fs: float, window: int, cycle_file_path
     stats_features = []
     for i in windows:
         df_cycles_win = df_cycles[(df_cycles["window"] == i)]
+        if df_cycles_win["win_sample_dur"].unique().shape[0] > 1:
+            raise ValueError("The window duration should be the same for all cycles in the same window.")
         stats = compute_cycles_statistics(df_cycles_win, fs=fs, average=False)
-        stats["window"] = i
+        stats.insert(1, "window", i)
+        stats.insert(2, "win_dur_samples", df_cycles_win["win_sample_dur"].values[0])
         stats_bursts.append(stats)
         stats = df_cycles_win.groupby('sensor').apply(compute_sensor_stats, include_groups=False).reset_index()
         stats["window"] = i

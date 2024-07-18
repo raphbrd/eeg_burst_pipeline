@@ -270,34 +270,41 @@ def win_cycle_by_cycle_single_rec(sid_key, window, fs, picks, whole_cycles_dir, 
     # so only the samples between the last cycle and the last samples are lost
     dur_samples = df_cycles.sample_last_trough.values[-1]
 
-    df_cycles = df_cycles[df_cycles.sensor.isin(picks)]  # filtering the desired channels
+    df_cycles = df_cycles[df_cycles.sensor.isin(picks)]  # filtering the desired channel
 
     window = int(window)  # to avoid leaving a dot in the filename
     win_samples = int(window * fs)  # number of samples in each window
     n_windows = int(dur_samples // win_samples)
+    # adding the last window (which is shorter/incomplete but can still be useful)
+    if dur_samples % win_samples > 0:
+        n_windows += 1
     dfs = []
 
-    # by reusing the cycles previously computed, the main drawback is to lose the cycles that are at the edge of
-    # the windows. But if we compute the cycles on the segmented data, we will have to deal with the fact that
-    # the cropping will lead to even more edge effects.
+    # an overlapping cycle with the next window is included in the current window
+    # thus, a window is starting at the first cycles which start after win_samples * i and ends at the last cycle
+    # starting before win_samples * (i + 1)
+    # this avoids losing cycles at the edges of the windows
+    # as a reminder: a cycle is defined from the last trough to the next trough
+    # (the peak is at the middle of the cycle)
     for i in range(n_windows):
         # slicing the dataframe to get only the cycles located inside the window
-        # by convention the first sample is included and the last one is excluded
-        # so no sample is counted twice
+        # by convention the first sample is included and the last one is excluded (no cycle counted twice).
         win_mask = (df_cycles.sample_last_trough >= win_samples * i) & (
                 df_cycles.sample_last_trough < win_samples * (i + 1))
         df_window = df_cycles[win_mask]
-        df_window["window"] = i
-        df_window["window_duration"] = window
-        df_window["win_start"] = win_samples * i
-        df_window["win_stop"] = win_samples * (i + 1)
+        sample_dur = df_window.sample_last_trough.values[-1] - df_window.sample_last_trough.values[0]
+        df_window.insert(1, "window", i)
+        df_window.insert(2, "window_duration", window)
+        df_window.insert(3, "win_sample_dur", sample_dur)
+        df_window.insert(4, "win_start", win_samples * i)
+        df_window.insert(5, "win_stop", win_samples * (i + 1))
         dfs.append(df_window)
 
-    df_windowed = pd.concat(dfs)
-    df_windowed["NIP"] = sid_key
+    df_windowed = pd.concat(dfs, axis=0)
+    df_windowed.insert(0, "NIP", sid_key)
 
     # reordering the columns
-    cols = ['NIP', 'sensor', 'window', 'window_duration', 'win_start', 'win_stop',
+    cols = ['NIP', 'sensor', 'window', 'window_duration', 'win_sample_dur', 'win_start', 'win_stop',
             'amp_fraction', 'amp_consistency', 'period_consistency', 'monotonicity',
             'period', 'time_peak', 'time_trough', 'volt_peak', 'volt_trough',
             'time_decay', 'time_rise', 'volt_decay', 'volt_rise', 'volt_amp',
@@ -313,7 +320,8 @@ def win_cycle_by_cycle_single_rec(sid_key, window, fs, picks, whole_cycles_dir, 
     cols.append('is_burst')
     df_windowed = df_windowed[cols]
 
-    df_windowed.to_csv(f"{win_cycles_dir}/{sid_key}_window_{window}s_all_cycles.csv", index=False)
+    df_windowed.to_csv(f"{win_cycles_dir}/{sid_key}_window_{window}s_all_cycles.csv", index=False, columns=cols,
+                       header=True)
 
 
 def run_by_cycle_pipeline(run_ids, raw_data_paths, picks, band_name, cycles_dir="./cycles_analysis",
