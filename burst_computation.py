@@ -83,16 +83,41 @@ def check_period_in_freq_range(period_array, fs, fmin, fmax):
 
 def check_burst_mean_period(df: pd.DataFrame, cycle_idx: int, fs: float, freqs_burst_range: tuple[float, float],
                             avg_func=pd.Series.mean) -> bool:
-    """Checks if the mean period of the current burst is within the desired frequency range."""
+    """Checks if the mean period of the current burst is within the desired frequency range.
+
+    The function first locates the burst containing the cycle_idx cycle. Then, it returns whether the mean period
+    of this burst is in the considered freqs_burst_range.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The dataframe containing the cycles features.
+    cycle_idx : int
+        The index of the cycle to check.
+    fs : float
+        The sampling frequency of the signal.
+    freqs_burst_range : tuple of float
+        The frequency range of the bursts.
+    avg_func : function
+        The function to compute the average period of the burst. It should be a mean or a median function from
+        pands.Series or numpy.
+
+    Returns
+    -------
+    bool
+        Whether the mean period of the burst is in the burst range.
+    """
 
     if avg_func not in [pd.Series.mean, np.mean, pd.Series.median, np.median]:
         raise ValueError("The average function must be a mean or a median function from pands.Series or numpy.")
 
     # locating the cycle in a burst
     starts, ends = get_burst_boundaries(df["is_burst"])
-    # the cycle is necessarily inside a burst, not at the beginning or the end (by definition)
-    current_burst_start = starts[(cycle_idx > starts)][-1]
-    current_burst_end = ends[(cycle_idx < ends)][0]
+    # the cycle should be inside a burst
+    if not np.any((starts <= cycle_idx) & (ends > cycle_idx)):
+        raise ValueError("The cycle is not inside a burst.")
+    current_burst_start = starts[(cycle_idx >= starts)][-1]
+    current_burst_end = ends[(cycle_idx <= ends)][0]
     # cycle at the index 'current_burst_end' is not included in the burst (as it is the one
     # following the last cycle of the burst)
     periods = df.loc[current_burst_start:current_burst_end, "period"]

@@ -96,7 +96,7 @@ def compute_cycles_statistics(df_cycles: pd.DataFrame, fs: float, average: bool 
                 non_burst_durations = np.append(non_burst_durations,
                                                 group.loc[ends[-2]:current_inter_burst_end, "period"].sum())
 
-        if len(starts) > 1:
+        if len(starts) >= 1:
             n_cycles_per_burst = (ends[1:] - starts).mean()
             n_cycles_per_burst_var = (ends[1:] - starts).var()
         else:

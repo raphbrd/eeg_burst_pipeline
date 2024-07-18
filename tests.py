@@ -9,18 +9,28 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from burst_computation import get_burst_boundaries, check_period_in_freq_range
+from burst_computation import get_burst_boundaries, check_period_in_freq_range, check_burst_mean_period
 from burst_statistics import compute_cycles_statistics
 
 
 class BurstComputationTestCases(unittest.TestCase):
 
+    def setUp(self):
+        self.burst = np.zeros(10, dtype=bool)
+        self.burst[1:4] = 1  # 1 burst starting at idx 1 and ending at idx 3
+        self.burst[5:9] = 1  # 1 burst starting at idx 5 and ending at idx 8
+
     def test_regular_burst_boundaries(self):
-        burst = np.zeros(10, dtype=bool)
+        starts, ends = get_burst_boundaries(self.burst)
+        np.testing.assert_array_equal(starts, np.array([1, 5]))
+        np.testing.assert_array_equal(ends, np.array([4, 9]))
+
+    def test_regular_burst_boundaries_with_floats(self):
+        burst = np.zeros(10, dtype=float)  # 1 or 0 float dtypes
         burst[1:4] = 1  # 1 burst starting at idx 1 and ending at idx 3
         burst[5:9] = 1  # 1 burst starting at idx 5 and ending at idx 8
 
-        starts, ends = get_burst_boundaries(burst)
+        starts, ends = get_burst_boundaries(list(burst))
         np.testing.assert_array_equal(starts, np.array([1, 5]))
         np.testing.assert_array_equal(ends, np.array([4, 9]))
 
@@ -51,6 +61,77 @@ class BurstComputationTestCases(unittest.TestCase):
         np.testing.assert_array_equal(
             check_period_in_freq_range(periods, fs, 8, 12),
             [False, False, False, False, False, False])
+
+
+class BurstPeriodChecksTestCases(unittest.TestCase):
+
+    def setUp(self):
+        self.bursts = np.zeros(20, dtype=bool)  # 1 burst of 3 cycles and 1 burst of 5 cycles
+        self.bursts[1:4] = 1
+        self.bursts[10:15] = 1
+        self.periods = np.repeat([100, 110, 90, 120, 95], 4)
+
+        self.df_cycles = pd.DataFrame({
+            "sensor": ["sensor1"] * 20,
+            "is_burst": self.bursts,
+            "period": self.periods,
+        })
+
+    def test_period_of_a_burst_cycle_ok(self):
+        self.assertTrue(check_burst_mean_period(self.df_cycles, 2, 1000, (8, 12)))
+
+    def test_period_of_a_burst_cycle_not_ok(self):
+        tmp = self.df_cycles.copy()
+        tmp.loc[1, "period"] = 60
+        tmp.loc[3, "period"] = 60
+        self.assertFalse(check_burst_mean_period(tmp, 2, 1000, (8, 12)))
+
+    def test_period_of_a_start_burst_cycle(self):
+        # testing period of a boundary cycle
+        self.assertTrue(
+            check_burst_mean_period(
+                self.df_cycles, 1, 1000, (8, 12))
+        )
+
+    def test_period_of_an_end_burst_cycle(self):
+        # testing period of a boundary cycle
+        self.assertTrue(
+            check_burst_mean_period(
+                self.df_cycles, 1, 1000, (8, 12))
+        )
+        self.assertTrue(
+            check_burst_mean_period(
+                self.df_cycles, 3, 1000, (8, 12))
+        )
+
+        # testing period of the end cycle (by definition, it is outside of the burst)
+        self.assertRaises(
+            ValueError,
+            check_burst_mean_period,
+            self.df_cycles, 4, 1000, (8, 12)
+        )
+
+    def test_trying_to_check_period_of_a_non_burst_cycle(self):
+        # testing period of a non-burst cycle
+        self.assertRaises(
+            ValueError,
+            check_burst_mean_period,
+            self.df_cycles, 0, 1000, (8, 12)
+        )
+
+        self.assertRaises(
+            ValueError,
+            check_burst_mean_period,
+            self.df_cycles, 7, 1000, (8, 12)
+        )
+
+    def test_not_using_a_valid_avg_func(self):
+        # testing period of a non-burst cycle
+        self.assertRaises(
+            ValueError,
+            check_burst_mean_period,
+            self.df_cycles, 0, 1000, (8, 12), avg_func="invalid"
+        )
 
 
 class BurstStatisticsTestCases(unittest.TestCase):

@@ -43,7 +43,7 @@ def check_pipeline_params(sfreq, all_chs, significant_chs, raw_data_paths):
 
 def key_ordering_pids(x):
     """ Return the key to order a list of strings by the numerical values of digits in the 
-    format *_(\d+), e.g., P_21 will come after P_3 (contrary to the internal python string ordering) """
+    format *_(\\d+), e.g., P_21 will come after P_3 (contrary to the internal python string ordering) """
     search = re.search(r'_(\d+)', x)
     if search:
         return int(search.group(1))
