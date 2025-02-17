@@ -106,16 +106,16 @@ python run_burst_pipeline.py
 
 ## Parameters used in our studies
 
-| 	                              | alpha    	 | theta 	 |
-|--------------------------------|------------|---------|
-| Frequency band (Hz)          	 | 8-12     	 | 4-7   	 |
-| amp_fraction_threshold       	 | 0.2      	 | 0.3   	 |
-| amp_consistency_threshold    	 | 0.4      	 | 0.4   	 |
-| period_consistency_threshold 	 | 0.4      	 | 0.4   	 |
-| monotonicity_threshold       	 | 0.8      	 | 0.8   	 |
-| min_n_cycles                 	 | 3        	 | 2     	 |
-| Filter frequencies (Hz)      	 | 4-16     	 | 2-8   	 |
-| Burst range (Hz)             	 | 7.5-12.5 	 | 3-7   	 |
+| 	                              | alpha    	 | theta 	 | beta 	    |
+|--------------------------------|------------|---------|-----------|
+| Frequency band (Hz)          	 | 8-12     	 | 4-7   	 | 15-30   	 |
+| amp_fraction_threshold       	 | 0.2      	 | 0.3   	 | 0.2   	   |
+| amp_consistency_threshold    	 | 0.4      	 | 0.4   	 | 0.5   	   |
+| period_consistency_threshold 	 | 0.4      	 | 0.4   	 | 0.5   	   |
+| monotonicity_threshold       	 | 0.8      	 | 0.7   	 | 0.9   	   |
+| min_n_cycles                 	 | 3        	 | 2     	 | 3   	     |
+| Filter frequencies (Hz)      	 | 4-16     	 | 2-8   	 | 13-32	    |
+| Burst range (Hz)             	 | 7.5-12.5 	 | 4-7   	 | 15-30   	 |
 
 Note: we use the default definition of a cycle in the bycycle package, i.e. the center extrema is the peak of the
 cycle.
